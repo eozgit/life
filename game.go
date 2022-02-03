@@ -17,7 +17,7 @@ type Tile struct {
 type Game struct {
 	tick                int
 	iteration           int
-	tiles               [][]Tile
+	tiles               map[int]map[int]Tile
 	speed               int
 	shouldIterateCached func(speed int, tick int) bool
 	help                bool
@@ -27,7 +27,8 @@ func (g *Game) Update() error {
 	g.checkInput()
 
 	if g.shouldIterate() {
-		g.resetTiles(0.2)
+		g.iterate()
+		g.iteration++
 	}
 	g.tick++
 	return nil
@@ -61,9 +62,9 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 }
 
 func (g *Game) resetTiles(density float32) {
-	g.tiles = make([][]Tile, width)
-	for i := range g.tiles {
-		g.tiles[i] = make([]Tile, height)
+	g.tiles = make(map[int]map[int]Tile)
+	for i := 0; i < width; i++ {
+		g.tiles[i] = make(map[int]Tile)
 		for j := 0; j < height; j++ {
 			alive := rand.Float32() < density
 			g.tiles[i][j] = Tile{alive, 0}
@@ -91,5 +92,75 @@ func (g *Game) checkInput() {
 			g.speed = 0
 		}
 		g.help = !g.help
+	}
+}
+
+func (g *Game) iterate() {
+	updatedLastRound := make(map[int]map[int]struct{})
+	for i := range g.tiles {
+		for j := range g.tiles[i] {
+			tile := g.tiles[i][j]
+			if tile.iteration == g.iteration-1 {
+				for m := 0; m < 3; m++ {
+					im := i + m - 1
+					if !(im < 0) && im < len(g.tiles) {
+						for n := 0; n < 3; n++ {
+							jn := j + n - 1
+							if !(jn < 0) && jn < len(g.tiles[i]) {
+								if _, ok := updatedLastRound[im]; !ok {
+									updatedLastRound[im] = make(map[int]struct{})
+								}
+								updatedLastRound[im][jn] = struct{}{}
+							}
+						}
+					}
+				}
+
+			}
+		}
+	}
+
+	updates := make(map[int]map[int]bool)
+	for i := range updatedLastRound {
+		for j := range updatedLastRound[i] {
+			alive := 0
+		neighbourhood:
+			for m := 0; m < 3; m++ {
+				im := i + m - 1
+				if !(im < 0) && im < len(g.tiles) {
+					for n := 0; n < 3; n++ {
+						jn := j + n - 1
+						if !(jn < 0) && jn < len(g.tiles[i]) {
+							if g.tiles[im][jn].alive {
+								alive++
+							}
+							if alive > 4 {
+								break neighbourhood
+							}
+						}
+					}
+				}
+			}
+
+			if alive == 3 && !g.tiles[i][j].alive {
+				if _, ok := updates[i]; !ok {
+					updates[i] = make(map[int]bool)
+				}
+				updates[i][j] = true
+			}
+
+			if (alive < 3 || alive > 4) && g.tiles[i][j].alive {
+				if _, ok := updates[i]; !ok {
+					updates[i] = make(map[int]bool)
+				}
+				updates[i][j] = false
+			}
+		}
+	}
+
+	for i := range updates {
+		for j := range updates[i] {
+			g.tiles[i][j] = Tile{updates[i][j], g.iteration}
+		}
 	}
 }

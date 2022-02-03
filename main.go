@@ -18,7 +18,7 @@ func main() {
 	ebiten.SetWindowTitle("Life")
 	shouldIterate := makeShouldIterate()
 	game := Game{0, 0, nil, defaultSpeed, shouldIterate, false}
-	game.resetTiles(0.2)
+	game.resetTiles(.2)
 	if err := ebiten.RunGame(&game); err != nil {
 		log.Fatal(err)
 	}
