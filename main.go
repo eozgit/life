@@ -3,10 +3,12 @@ package main
 import (
 	"image/color"
 	"log"
+	"math"
 	"math/rand"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 var dim = 100
@@ -25,6 +27,8 @@ type Game struct {
 }
 
 func (g *Game) Update() error {
+	g.checkInput()
+
 	if g.shouldIterate() {
 		g.resetTiles(0.2)
 	}
@@ -59,8 +63,20 @@ func (g *Game) resetTiles(density float32) {
 }
 
 func (g *Game) shouldIterate() bool {
-	return g.shouldIterateCached(g.speed, g.tick)
+	return g.shouldIterateCached(g.speed, g.tick%1000)
 }
+
+var numberKeys = []ebiten.Key{ebiten.Key0, ebiten.Key1, ebiten.Key2, ebiten.Key3, ebiten.Key4, ebiten.Key5, ebiten.Key6, ebiten.Key7, ebiten.Key8, ebiten.Key9}
+
+func (g *Game) checkInput() {
+	for _, key := range numberKeys {
+		if inpututil.IsKeyJustPressed(key) {
+			g.speed = int(key) - int(ebiten.Key0)
+		}
+	}
+}
+
+var decay = .5
 
 func makeShouldIterate() func(speed int, tick int) bool {
 	speedTickIterationMap := make(map[int]map[int]int)
@@ -77,7 +93,8 @@ func makeShouldIterate() func(speed int, tick int) bool {
 		if iter, ok := tickIterationMap[tick]; ok {
 			iteration = iter
 		} else {
-			iteration = tick * speed / 9
+			factor := math.Pow(decay, float64(9-speed))
+			iteration = int(float64(tick) * factor)
 			tickIterationMap[tick] = iteration
 		}
 
