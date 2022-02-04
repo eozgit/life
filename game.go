@@ -39,19 +39,19 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		ebitenutil.DebugPrint(screen, "0-9 set speed\nh   resume")
 	} else {
 		screen.Fill(color.White)
-		for i := range g.tiles {
-			for j := range g.tiles[i] {
-				if g.tiles[i][j].alive {
-					screen.Set(i, j, color.Black)
-				}
+		g.sweep(func(i int, j int) {
+			if g.tiles[i][j].alive {
+				screen.Set(i, j, color.Black)
 			}
-		}
+		})
+
 		if g.tick < 150 {
-			for i := 0; i < width; i++ {
-				for j := 0; j < 19; j++ {
+			g.sweep(func(i int, j int) {
+				if j < 19 {
 					screen.Set(i, j, color.Black)
 				}
-			}
+			})
+
 			ebitenutil.DebugPrint(screen, "hit h for help")
 		}
 	}
@@ -63,13 +63,13 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 
 func (g *Game) resetTiles(density float32) {
 	g.tiles = make(map[int]map[int]Tile)
-	for i := 0; i < width; i++ {
-		g.tiles[i] = make(map[int]Tile)
-		for j := 0; j < height; j++ {
-			alive := rand.Float32() < density
-			g.tiles[i][j] = Tile{alive, 0}
+	g.sweep(func(i int, j int) {
+		if g.tiles[i] == nil {
+			g.tiles[i] = make(map[int]Tile)
 		}
-	}
+		alive := rand.Float32() < density
+		g.tiles[i][j] = Tile{alive, 0}
+	})
 }
 
 func (g *Game) shouldIterate() bool {
@@ -97,28 +97,26 @@ func (g *Game) checkInput() {
 
 func (g *Game) iterate() {
 	updatedLastRound := make(map[int]map[int]struct{})
-	for i := range g.tiles {
-		for j := range g.tiles[i] {
-			tile := g.tiles[i][j]
-			if tile.iteration == g.iteration-1 {
-				for m := 0; m < 3; m++ {
-					im := i + m - 1
-					if !(im < 0) && im < len(g.tiles) {
-						for n := 0; n < 3; n++ {
-							jn := j + n - 1
-							if !(jn < 0) && jn < len(g.tiles[i]) {
-								if _, ok := updatedLastRound[im]; !ok {
-									updatedLastRound[im] = make(map[int]struct{})
-								}
-								updatedLastRound[im][jn] = struct{}{}
+
+	g.sweep(func(i int, j int) {
+		tile := g.tiles[i][j]
+		if tile.iteration == g.iteration-1 {
+			for m := 0; m < 3; m++ {
+				im := i + m - 1
+				if !(im < 0) && im < len(g.tiles) {
+					for n := 0; n < 3; n++ {
+						jn := j + n - 1
+						if !(jn < 0) && jn < len(g.tiles[i]) {
+							if _, ok := updatedLastRound[im]; !ok {
+								updatedLastRound[im] = make(map[int]struct{})
 							}
+							updatedLastRound[im][jn] = struct{}{}
 						}
 					}
 				}
-
 			}
 		}
-	}
+	})
 
 	updates := make(map[int]map[int]bool)
 	for i := range updatedLastRound {
@@ -161,6 +159,14 @@ func (g *Game) iterate() {
 	for i := range updates {
 		for j := range updates[i] {
 			g.tiles[i][j] = Tile{updates[i][j], g.iteration}
+		}
+	}
+}
+
+func (g *Game) sweep(callback func(i int, j int)) {
+	for i := 0; i < width; i++ {
+		for j := 0; j < height; j++ {
+			callback(i, j)
 		}
 	}
 }
