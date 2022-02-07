@@ -6,7 +6,6 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 type Cell struct {
@@ -22,6 +21,7 @@ type Game struct {
 	shouldIterateCached func(speed int, tick int) bool
 	showHelp            bool
 	changes             map[int]map[int]struct{}
+	colour              func(cell *Cell, change bool) color.RGBA
 }
 
 func (g *Game) Update() error {
@@ -43,20 +43,14 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	screen.Fill(color.White)
 	g.scan(func(i int, j int) {
-		if g.cells[i][j].alive {
-			screen.Set(i, j, color.Black)
+		change := false
+		if _, ok := g.changes[i]; ok {
+			if _, ok := g.changes[i][j]; ok {
+				change = true
+			}
 		}
-	})
-
-	pink, aqua := color.RGBA{255, 0, 255, 255}, color.RGBA{0, 255, 255, 255}
-
-	g.scanChanges(func(i int, j int) {
-		var colour color.RGBA
-		if g.cells[i][j].alive {
-			colour = pink
-		} else {
-			colour = aqua
-		}
+		cell := g.cells[i][j]
+		colour := g.colour(&cell, change)
 		screen.Set(i, j, colour)
 	})
 
@@ -95,25 +89,6 @@ func (g *Game) resetTiles(density float32) {
 
 func (g *Game) shouldIterate() bool {
 	return g.shouldIterateCached(g.speed, g.tick)
-}
-
-var numberKeys = []ebiten.Key{ebiten.Key0, ebiten.Key1, ebiten.Key2, ebiten.Key3, ebiten.Key4, ebiten.Key5, ebiten.Key6, ebiten.Key7, ebiten.Key8, ebiten.Key9}
-
-func (g *Game) checkInput() {
-	for _, key := range numberKeys {
-		if inpututil.IsKeyJustPressed(key) {
-			g.speed = int(key) - int(ebiten.Key0)
-		}
-	}
-
-	if inpututil.IsKeyJustPressed(ebiten.KeyH) {
-		if g.showHelp {
-			g.speed = defaultSpeed
-		} else {
-			g.speed = 0
-		}
-		g.showHelp = !g.showHelp
-	}
 }
 
 func (g *Game) iterate() {
