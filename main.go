@@ -14,8 +14,8 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 	ebiten.SetWindowSize(game.Width*8, game.Height*8)
 	ebiten.SetWindowTitle("Life")
-	shouldIterate := makeShouldIterate()
-	game := game.Game{0, 0, nil, game.DefaultSpeed, shouldIterate, false, nil, &theme.BlackAndWhite{}}
+	game := game.Game{Speed: game.DefaultSpeed, Theme: &theme.BlackAndWhite{}}
+	game.Init()
 	game.ResetTiles(.2)
 	if err := ebiten.RunGame(&game); err != nil {
 		log.Fatal(err)

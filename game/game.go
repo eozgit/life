@@ -34,7 +34,7 @@ func (g *Game) Update() error {
 
 func (g *Game) Draw(screen *ebiten.Image) {
 	if g.ShowHelp {
-		ebitenutil.DebugPrint(screen, "0-9 set speed\nh   resume")
+		ebitenutil.DebugPrint(screen, "0-9 set speed\nt + 1-3 set theme\nh   resume")
 		return
 	}
 
@@ -69,7 +69,7 @@ func (g *Game) ResetTiles(density float32) {
 			g.Cells[i] = make(map[int]cell.Cell)
 		}
 		alive := rand.Float32() < density
-		g.Cells[i][j] = cell.Cell{alive, 0}
+		g.Cells[i][j] = cell.Cell{Alive: alive, Iteration: 0}
 	})
 	g.Changes = make(map[int]map[int]struct{})
 	g.scan(func(i int, j int) {
@@ -80,8 +80,12 @@ func (g *Game) ResetTiles(density float32) {
 	})
 }
 
+func (g *Game) Init() {
+	g.ShouldIterateCached = makeShouldIterate()
+}
+
 func (g *Game) shouldIterate() bool {
-	return g.ShouldIterateCached(g.Speed, g.Tick)
+	return !g.ShowHelp && g.ShouldIterateCached(g.Speed, g.Tick)
 }
 
 func (g *Game) iterate() {
@@ -91,7 +95,7 @@ func (g *Game) iterate() {
 
 	for i := range changes {
 		for j := range changes[i] {
-			g.Cells[i][j] = cell.Cell{!g.Cells[i][j].Alive, g.Iteration}
+			g.Cells[i][j] = cell.Cell{Alive: !g.Cells[i][j].Alive, Iteration: g.Iteration}
 		}
 	}
 
