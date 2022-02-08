@@ -1,27 +1,24 @@
-package main
+package game
 
 import (
 	"image/color"
 	"math/rand"
 
+	"github.com/eozgit/life/game/cell"
+	"github.com/eozgit/life/theme"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
-type Cell struct {
-	alive     bool
-	iteration int
-}
-
 type Game struct {
-	tick                int
-	iteration           int
-	cells               map[int]map[int]Cell
-	speed               int
-	shouldIterateCached func(speed int, tick int) bool
-	showHelp            bool
-	changes             map[int]map[int]struct{}
-	colour              func(cell *Cell, age int) color.RGBA
+	Tick                int
+	Iteration           int
+	Cells               map[int]map[int]cell.Cell
+	Speed               int
+	ShouldIterateCached func(speed int, tick int) bool
+	ShowHelp            bool
+	Changes             map[int]map[int]struct{}
+	Theme               theme.Theme
 }
 
 func (g *Game) Update() error {
@@ -29,27 +26,28 @@ func (g *Game) Update() error {
 
 	if g.shouldIterate() {
 		g.iterate()
-		g.iteration++
+		g.Iteration++
 	}
-	g.tick++
+	g.Tick++
 	return nil
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	if g.showHelp {
+	if g.ShowHelp {
 		ebitenutil.DebugPrint(screen, "0-9 set speed\nh   resume")
 		return
 	}
 
 	screen.Fill(color.White)
 	g.scan(func(i int, j int) {
-		cell := g.cells[i][j]
-		age := g.iteration - cell.iteration - 1
-		colour := g.colour(&cell, age)
+		cell := g.Cells[i][j]
+		age := g.Iteration - cell.Iteration - 1
+		p := &cell
+		colour := g.Theme.Colour(p, age)
 		screen.Set(i, j, colour)
 	})
 
-	if g.tick < 80 {
+	if g.Tick < 80 {
 		g.scan(func(i int, j int) {
 			if j < 19 {
 				screen.Set(i, j, color.Black)
@@ -61,29 +59,29 @@ func (g *Game) Draw(screen *ebiten.Image) {
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	return width, height
+	return Width, Height
 }
 
-func (g *Game) resetTiles(density float32) {
-	g.cells = make(map[int]map[int]Cell)
+func (g *Game) ResetTiles(density float32) {
+	g.Cells = make(map[int]map[int]cell.Cell)
 	g.scan(func(i int, j int) {
-		if g.cells[i] == nil {
-			g.cells[i] = make(map[int]Cell)
+		if g.Cells[i] == nil {
+			g.Cells[i] = make(map[int]cell.Cell)
 		}
 		alive := rand.Float32() < density
-		g.cells[i][j] = Cell{alive, 0}
+		g.Cells[i][j] = cell.Cell{alive, 0}
 	})
-	g.changes = make(map[int]map[int]struct{})
+	g.Changes = make(map[int]map[int]struct{})
 	g.scan(func(i int, j int) {
-		if g.changes[i] == nil {
-			g.changes[i] = make(map[int]struct{})
+		if g.Changes[i] == nil {
+			g.Changes[i] = make(map[int]struct{})
 		}
-		g.changes[i][j] = struct{}{}
+		g.Changes[i][j] = struct{}{}
 	})
 }
 
 func (g *Game) shouldIterate() bool {
-	return g.shouldIterateCached(g.speed, g.tick)
+	return g.ShouldIterateCached(g.Speed, g.Tick)
 }
 
 func (g *Game) iterate() {
@@ -93,11 +91,11 @@ func (g *Game) iterate() {
 
 	for i := range changes {
 		for j := range changes[i] {
-			g.cells[i][j] = Cell{!g.cells[i][j].alive, g.iteration}
+			g.Cells[i][j] = cell.Cell{!g.Cells[i][j].Alive, g.Iteration}
 		}
 	}
 
-	g.changes = changes
+	g.Changes = changes
 }
 
 func (g *Game) getAliveCountWithinProximity(i int, j int) int {
@@ -105,11 +103,11 @@ func (g *Game) getAliveCountWithinProximity(i int, j int) int {
 neighbourhood:
 	for m := 0; m < 3; m++ {
 		im := i + m - 1
-		if !(im < 0) && im < width {
+		if !(im < 0) && im < Width {
 			for n := 0; n < 3; n++ {
 				jn := j + n - 1
-				if !(jn < 0) && jn < height {
-					if g.cells[im][jn].alive {
+				if !(jn < 0) && jn < Height {
+					if g.Cells[im][jn].Alive {
 						alive++
 					}
 					if alive > 4 {
@@ -127,10 +125,10 @@ func (g *Game) getPotentialChanges() map[int]map[int]struct{} {
 	g.scanChanges(func(i int, j int) {
 		for m := 0; m < 3; m++ {
 			im := i + m - 1
-			if !(im < 0) && im < width {
+			if !(im < 0) && im < Width {
 				for n := 0; n < 3; n++ {
 					jn := j + n - 1
-					if !(jn < 0) && jn < height {
+					if !(jn < 0) && jn < Height {
 						if _, ok := potentialChanges[im]; !ok {
 							potentialChanges[im] = make(map[int]struct{})
 						}
@@ -149,14 +147,14 @@ func (g *Game) getChanges(potentialChanges map[int]map[int]struct{}) map[int]map
 		for j := range potentialChanges[i] {
 			alive := g.getAliveCountWithinProximity(i, j)
 
-			if alive == 3 && !g.cells[i][j].alive {
+			if alive == 3 && !g.Cells[i][j].Alive {
 				if _, ok := changes[i]; !ok {
 					changes[i] = make(map[int]struct{})
 				}
 				changes[i][j] = struct{}{}
 			}
 
-			if (alive < 3 || alive > 4) && g.cells[i][j].alive {
+			if (alive < 3 || alive > 4) && g.Cells[i][j].Alive {
 				if _, ok := changes[i]; !ok {
 					changes[i] = make(map[int]struct{})
 				}
@@ -168,16 +166,16 @@ func (g *Game) getChanges(potentialChanges map[int]map[int]struct{}) map[int]map
 }
 
 func (g *Game) scan(callback func(i int, j int)) {
-	for i := 0; i < width; i++ {
-		for j := 0; j < height; j++ {
+	for i := 0; i < Width; i++ {
+		for j := 0; j < Height; j++ {
 			callback(i, j)
 		}
 	}
 }
 
 func (g *Game) scanChanges(callback func(i int, j int)) {
-	for i := range g.changes {
-		for j := range g.changes[i] {
+	for i := range g.Changes {
+		for j := range g.Changes[i] {
 			callback(i, j)
 		}
 	}

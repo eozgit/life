@@ -5,20 +5,18 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/eozgit/life/game"
+	"github.com/eozgit/life/theme"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-var width, height = 160, 120
-
-var defaultSpeed = 5
-
 func main() {
 	rand.Seed(time.Now().UnixNano())
-	ebiten.SetWindowSize(width*8, height*8)
+	ebiten.SetWindowSize(game.Width*8, game.Height*8)
 	ebiten.SetWindowTitle("Life")
 	shouldIterate := makeShouldIterate()
-	game := Game{0, 0, nil, defaultSpeed, shouldIterate, false, nil, blackAndWhite}
-	game.resetTiles(.2)
+	game := game.Game{0, 0, nil, game.DefaultSpeed, shouldIterate, false, nil, &theme.BlackAndWhite{}}
+	game.ResetTiles(.2)
 	if err := ebiten.RunGame(&game); err != nil {
 		log.Fatal(err)
 	}
