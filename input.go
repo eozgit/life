@@ -9,9 +9,10 @@ import (
 
 var numberKeys = []ebiten.Key{ebiten.Key0, ebiten.Key1, ebiten.Key2, ebiten.Key3, ebiten.Key4, ebiten.Key5, ebiten.Key6, ebiten.Key7, ebiten.Key8, ebiten.Key9}
 
-var colourFuncMap = map[ebiten.Key]func(cell *Cell, change bool) color.RGBA{
+var colourFuncMap = map[ebiten.Key]func(cell *Cell, age int) color.RGBA{
 	ebiten.Key1: blackAndWhite,
 	ebiten.Key2: cga,
+	ebiten.Key3: earth,
 }
 
 func (g *Game) checkInput() {

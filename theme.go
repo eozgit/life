@@ -1,28 +1,62 @@
 package main
 
-import "image/color"
+import (
+	"image/color"
 
-var black, white, pink, aqua = color.RGBA{0, 0, 0, 255}, color.RGBA{255, 255, 255, 255}, color.RGBA{255, 0, 255, 255}, color.RGBA{0, 255, 255, 255}
+	"golang.org/x/image/colornames"
+)
 
-func blackAndWhite(cell *Cell, change bool) color.RGBA {
+func blackAndWhite(cell *Cell, age int) color.RGBA {
 	if cell.alive {
-		return black
+		return colornames.Black
 	}
 
-	return white
+	return colornames.White
 }
 
-func cga(cell *Cell, change bool) color.RGBA {
+func cga(cell *Cell, age int) color.RGBA {
+	change := age == 0
 	if cell.alive {
 		if change {
-			return pink
+			return colornames.Fuchsia
 		}
-		return black
+		return colornames.Black
 	}
 
 	if change {
-		return aqua
+		return colornames.Aqua
 	}
 
-	return white
+	return colornames.White
+}
+
+func earth(cell *Cell, age int) color.RGBA {
+	if cell.alive {
+		if age == 0 {
+			return colornames.Yellow
+		}
+
+		mode := age / 3 % 2
+
+		if mode == 0 {
+			return colornames.Green
+		}
+		return colornames.Darkgreen
+	}
+
+	if age == 0 {
+		return colornames.Deepskyblue
+	}
+
+	if age < 17 {
+		if age%5 < 3 {
+			return colornames.Blue
+		}
+		return colornames.Mediumblue
+	}
+
+	if age%7 < 4 {
+		return colornames.Darkblue
+	}
+	return colornames.Navy
 }

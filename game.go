@@ -21,7 +21,7 @@ type Game struct {
 	shouldIterateCached func(speed int, tick int) bool
 	showHelp            bool
 	changes             map[int]map[int]struct{}
-	colour              func(cell *Cell, change bool) color.RGBA
+	colour              func(cell *Cell, age int) color.RGBA
 }
 
 func (g *Game) Update() error {
@@ -43,14 +43,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	screen.Fill(color.White)
 	g.scan(func(i int, j int) {
-		change := false
-		if _, ok := g.changes[i]; ok {
-			if _, ok := g.changes[i][j]; ok {
-				change = true
-			}
-		}
 		cell := g.cells[i][j]
-		colour := g.colour(&cell, change)
+		age := g.iteration - cell.iteration - 1
+		colour := g.colour(&cell, age)
 		screen.Set(i, j, colour)
 	})
 
