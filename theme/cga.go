@@ -14,7 +14,7 @@ func (t *CGA) Colour(cell *cell.Cell, age int) color.RGBA {
 	change := age == 0
 	if cell.Alive {
 		if change {
-			return colornames.Fuchsia
+			return colornames.Magenta
 		}
 		return colornames.Black
 	}

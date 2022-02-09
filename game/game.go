@@ -34,7 +34,7 @@ func (g *Game) Update() error {
 
 func (g *Game) Draw(screen *ebiten.Image) {
 	if g.ShowHelp {
-		ebitenutil.DebugPrint(screen, "0-9 set speed\nt + 1-3 set theme\nh   resume")
+		ebitenutil.DebugPrint(screen, "0-9      set speed\nt + 1-3  set theme\nh        resume")
 		return
 	}
 
