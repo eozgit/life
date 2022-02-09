@@ -100,26 +100,12 @@ func (g *Game) iterate() {
 func (g *Game) getPotentialChanges() map[int]map[int]struct{} {
 	potentialChanges := make(map[int]map[int]struct{})
 	g.scanChanges(func(i int, j int) {
-		for m := 0; m < 3; m++ {
-			im := i + m - 1
-			if im < 0 {
-				im += Width
+		g.traverseNeighbours(i, j, func(im int, jn int, _ *bool) {
+			if _, ok := potentialChanges[im]; !ok {
+				potentialChanges[im] = make(map[int]struct{})
 			}
-			im = im % Width
-
-			for n := 0; n < 3; n++ {
-				jn := j + n - 1
-				if jn < 0 {
-					jn += Height
-				}
-				jn = jn % Height
-
-				if _, ok := potentialChanges[im]; !ok {
-					potentialChanges[im] = make(map[int]struct{})
-				}
-				potentialChanges[im][jn] = struct{}{}
-			}
-		}
+			potentialChanges[im][jn] = struct{}{}
+		})
 	})
 	return potentialChanges
 }
@@ -150,29 +136,14 @@ func (g *Game) getChanges(potentialChanges map[int]map[int]struct{}) map[int]map
 
 func (g *Game) getAliveCountWithinProximity(i int, j int) int {
 	alive := 0
-neighbourhood:
-	for m := 0; m < 3; m++ {
-		im := i + m - 1
-		if im < 0 {
-			im += Width
+	g.traverseNeighbours(i, j, func(im int, jn int, shouldBreak *bool) {
+		if g.Cells[im][jn].Alive {
+			alive++
 		}
-		im = im % Width
-
-		for n := 0; n < 3; n++ {
-			jn := j + n - 1
-			if jn < 0 {
-				jn += Height
-			}
-			jn = jn % Height
-
-			if g.Cells[im][jn].Alive {
-				alive++
-			}
-			if alive > 4 {
-				break neighbourhood
-			}
+		if alive > 4 {
+			*shouldBreak = true
 		}
-	}
+	})
 	return alive
 }
 
@@ -188,6 +159,31 @@ func (g *Game) scanChanges(callback func(i int, j int)) {
 	for i := range g.Changes {
 		for j := range g.Changes[i] {
 			callback(i, j)
+		}
+	}
+}
+
+func (g *Game) traverseNeighbours(i int, j int, callback func(im int, jn int, shouldBreak *bool)) {
+	shouldBreak := false
+neighbourhood:
+	for m := 0; m < 3; m++ {
+		im := i + m - 1
+		if im < 0 {
+			im += Width
+		}
+		im = im % Width
+
+		for n := 0; n < 3; n++ {
+			jn := j + n - 1
+			if jn < 0 {
+				jn += Height
+			}
+			jn = jn % Height
+
+			callback(im, jn, &shouldBreak)
+			if shouldBreak {
+				break neighbourhood
+			}
 		}
 	}
 }
