@@ -15,7 +15,6 @@ func main() {
 	ebiten.SetWindowSize(game.Width*8, game.Height*8)
 	ebiten.SetWindowTitle("Life")
 	game := game.Game{Speed: game.DefaultSpeed, Theme: &theme.BlackAndWhite{}}
-	game.Init()
 	game.ResetTiles(.2)
 	if err := ebiten.RunGame(&game); err != nil {
 		log.Fatal(err)

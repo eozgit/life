@@ -35,3 +35,5 @@ func makeShouldIterate() func(speed int, tick int) bool {
 		return iteration > prev
 	}
 }
+
+var ShouldIterate = makeShouldIterate()
