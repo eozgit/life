@@ -3,6 +3,7 @@ package game
 import (
 	"log"
 
+	"github.com/eozgit/life/game/cell"
 	"github.com/eozgit/life/theme"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -25,6 +26,7 @@ func (g *Game) checkInput() {
 		if inpututil.IsKeyJustPressed(key) {
 			g.Speed = int(key) - int(ebiten.Key0)
 			log.Printf("Set speed to %d", g.Speed)
+			return
 		}
 	}
 
@@ -35,5 +37,16 @@ func (g *Game) checkInput() {
 		} else {
 			log.Printf("Hide help")
 		}
+		return
+	}
+
+	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
+		x, y := ebiten.CursorPosition()
+		g.Cells[x][y] = cell.Cell{Alive: true, Iteration: g.Iteration - 1}
+		if _, ok := g.Changes[x]; !ok {
+			g.Changes[x] = make(map[int]struct{})
+		}
+		g.Changes[x][y] = struct{}{}
+		return
 	}
 }
