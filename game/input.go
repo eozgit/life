@@ -40,13 +40,32 @@ func (g *Game) checkInput() {
 		return
 	}
 
-	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
+	if ebiten.IsKeyPressed(ebiten.KeyZ) && ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) { // create block
 		x, y := ebiten.CursorPosition()
-		g.Cells[x][y] = cell.Cell{Alive: true, Iteration: g.Iteration - 1}
-		if _, ok := g.Changes[x]; !ok {
-			g.Changes[x] = make(map[int]struct{})
-		}
-		g.Changes[x][y] = struct{}{}
+		g.resurrectCell(x, y)
+		g.resurrectCell(x, y+1)
+		g.resurrectCell(x+1, y)
+		g.resurrectCell(x+1, y+1)
 		return
 	}
+
+	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
+		x, y := ebiten.CursorPosition()
+		g.resurrectCell(x, y)
+		return
+	}
+}
+
+func (g *Game) resurrectCell(x int, y int) {
+	if x >= Width {
+		x %= Width
+	}
+	if y >= Height {
+		y %= Height
+	}
+	g.Cells[x][y] = cell.Cell{Alive: true, Iteration: g.Iteration - 1}
+	if _, ok := g.Changes[x]; !ok {
+		g.Changes[x] = make(map[int]struct{})
+	}
+	g.Changes[x][y] = struct{}{}
 }
