@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/eozgit/life/game/cell"
+	"github.com/eozgit/life/pattern"
 	"github.com/eozgit/life/theme"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -42,17 +43,23 @@ func (g *Game) checkInput() {
 
 	if ebiten.IsKeyPressed(ebiten.KeyZ) && ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) { // create block
 		x, y := ebiten.CursorPosition()
-		g.resurrectCell(x, y)
-		g.resurrectCell(x, y+1)
-		g.resurrectCell(x+1, y)
-		g.resurrectCell(x+1, y+1)
+		g.resurrectByPattern("block", x, y)
 		return
 	}
 
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		x, y := ebiten.CursorPosition()
-		g.resurrectCell(x, y)
+		g.resurrectByPattern("cell", x, y)
 		return
+	}
+}
+
+func (g *Game) resurrectByPattern(patternName string, x int, y int) {
+	coords := pattern.GetPattern(patternName)
+	for i := range coords {
+		for j := range coords[i] {
+			g.resurrectCell(x+i, y+j)
+		}
 	}
 }
 
