@@ -12,6 +12,8 @@ import (
 
 var numberKeys = []ebiten.Key{ebiten.Key1, ebiten.Key2, ebiten.Key3, ebiten.Key4, ebiten.Key5, ebiten.Key6, ebiten.Key7, ebiten.Key8, ebiten.Key9}
 
+var lastSpaceshipCreatedAt = 0
+
 func (g *Game) checkInput() {
 	if ebiten.IsKeyPressed(ebiten.KeyT) {
 		for k, v := range theme.ThemeMap {
@@ -41,17 +43,33 @@ func (g *Game) checkInput() {
 		return
 	}
 
-	if ebiten.IsKeyPressed(ebiten.KeyZ) && ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) { // create block
-		x, y := ebiten.CursorPosition()
-		g.resurrectByPattern("block", x, y)
-		return
-	}
-
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
+		if lastSpaceshipCreatedAt > g.Iteration-2 {
+			return
+		}
+
 		x, y := ebiten.CursorPosition()
-		g.resurrectByPattern("cell", x, y)
+		if ebiten.IsKeyPressed(ebiten.KeyZ) {
+			g.resurrectByPattern("block", x, y)
+			log.Printf("Create block at %d, %d", x, y)
+		} else if ebiten.IsKeyPressed(ebiten.KeyX) {
+			g.createSpaceship(x, y, "glider", "glider")
+		} else if ebiten.IsKeyPressed(ebiten.KeyC) {
+			g.createSpaceship(x, y, "lwss", "light-weight spaceship")
+		} else if ebiten.IsKeyPressed(ebiten.KeyV) {
+			g.createSpaceship(x, y, "hwss", "heavy-weight spaceship")
+		} else {
+			g.resurrectByPattern("cell", x, y)
+			log.Printf("Resurrect cell %d, %d", x, y)
+		}
 		return
 	}
+}
+
+func (g *Game) createSpaceship(x int, y int, patternName string, spaceshipName string) {
+	lastSpaceshipCreatedAt = g.Iteration
+	g.resurrectByPattern(patternName, x, y)
+	log.Printf("Create %s at %d, %d", spaceshipName, x, y)
 }
 
 func (g *Game) resurrectByPattern(patternName string, x int, y int) {
