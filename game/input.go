@@ -57,6 +57,8 @@ func (g *Game) checkInput() {
 		} else if ebiten.IsKeyPressed(ebiten.KeyC) {
 			g.createSpaceship(x, y, "lwss", "light-weight spaceship")
 		} else if ebiten.IsKeyPressed(ebiten.KeyV) {
+			g.createSpaceship(x, y, "mwss", "middle-weight spaceship")
+		} else if ebiten.IsKeyPressed(ebiten.KeyB) {
 			g.createSpaceship(x, y, "hwss", "heavy-weight spaceship")
 		} else {
 			g.resurrectByPattern("cell", x, y)

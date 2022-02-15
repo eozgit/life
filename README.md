@@ -15,4 +15,5 @@ Conway's game of life
 |z + LMB|Resurrect *block*|
 |x + LMB|Create *glider*|
 |c + LMB|Create *light-weight spaceship*|
-|v + LMB|Create *heavy-weight spaceship*|
+|v + LMB|Create *middle-weight spaceship*|
+|b + LMB|Create *heavy-weight spaceship*|
