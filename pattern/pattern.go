@@ -3,6 +3,7 @@ package pattern
 import (
 	"bufio"
 	_ "embed"
+	"math/rand"
 	"strings"
 )
 
@@ -50,8 +51,46 @@ func getPattern(patternName string) [][]bool {
 	return result
 }
 
+func flipCoin() bool {
+	return rand.Float32() < .5
+}
+
+func transformPattern(pattern [][]bool) [][]bool {
+	length := len(pattern)
+
+	flipX, flipY, transpose := flipCoin(), flipCoin(), flipCoin()
+
+	result := make([][]bool, length)
+	for i := 0; i < length; i++ {
+		result[i] = make([]bool, length)
+	}
+
+	for i := 0; i < length; i++ {
+		m := i
+		if flipX {
+			m = length - i - 1
+		}
+		for j := 0; j < length; j++ {
+			n := j
+			if flipY {
+				n = length - j - 1
+			}
+
+			if transpose {
+				result[n][m] = pattern[i][j]
+			} else {
+				result[m][n] = pattern[i][j]
+			}
+		}
+	}
+
+	return result
+}
+
 func GetPattern(patternName string) map[int]map[int]struct{} {
 	pattern := getPattern(patternName)
+
+	pattern = transformPattern(pattern)
 
 	result := make(map[int]map[int]struct{})
 
