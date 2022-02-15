@@ -15,6 +15,17 @@ var numberKeys = []ebiten.Key{ebiten.Key1, ebiten.Key2, ebiten.Key3, ebiten.Key4
 var lastSpaceshipCreatedAt = 0
 
 func (g *Game) checkInput() {
+	if ebiten.IsKeyPressed(ebiten.KeyR) {
+		for _, key := range numberKeys {
+			if inpututil.IsKeyJustPressed(key) {
+				density := float32(int(key)-int(ebiten.Key0)) / 10
+				g.ResetTiles(density)
+				log.Printf("Reset %.1f", density)
+				return
+			}
+		}
+	}
+
 	if ebiten.IsKeyPressed(ebiten.KeyT) {
 		for k, v := range theme.ThemeMap {
 			if inpututil.IsKeyJustPressed(k) {
@@ -44,7 +55,7 @@ func (g *Game) checkInput() {
 	}
 
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
-		if lastSpaceshipCreatedAt > g.Iteration-2 {
+		if lastSpaceshipCreatedAt > g.Iteration-g.Speed {
 			return
 		}
 

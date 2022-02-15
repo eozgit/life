@@ -11,7 +11,14 @@ type MenuItem struct {
 }
 
 func getHelpText() string {
-	hotkeyFnMap := []MenuItem{{hotkey: "0-9", description: "set speed"}, {hotkey: "t + 1-4", description: "set theme"}, {hotkey: "LMB", description: "resurrect cell"}, {hotkey: "h", description: "resume"}}
+	hotkeyFnMap := []MenuItem{
+		{hotkey: "1-9", description: "set speed"},
+		{hotkey: "t + 1-4", description: "select theme"},
+		{hotkey: "LMB", description: "resurrect cell"},
+		{hotkey: "x + LMB", description: "create glider"},
+		{hotkey: "r + 1-9", description: "reset"},
+		{hotkey: "h", description: "resume"},
+	}
 	max := 0
 	for _, item := range hotkeyFnMap {
 		length := len(item.hotkey)
