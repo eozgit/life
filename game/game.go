@@ -21,7 +21,7 @@ type Game struct {
 }
 
 func (g *Game) Update() error {
-	g.checkInput()
+	g.handleInput()
 
 	if g.shouldIterate() {
 		g.iterate()

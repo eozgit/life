@@ -1,6 +1,14 @@
 # life
 Conway's game of life
 
+```sh
+docker pull eozgit/life
+```
+
+```sh
+docker run --rm --tty --interactive --publish 8080:8080 --name life eozgit/life
+```
+
 ### Hotkeys
 
 |Key|Function|
@@ -20,3 +28,34 @@ Conway's game of life
 |b + LMB|Create *heavy-weight spaceship*|
 
 \* When CGA theme is selected cells updated on last iteration will be highlighted showing the active areas subject to potential update next turn
+
+---
+
+#### Docker repo
+https://hub.docker.com/r/eozgit/life
+
+---
+
+### Docker
+
+#### Build
+```sh
+docker build --tag eozgit/life:latest --tag eozgit/life:YYMMDD .
+```
+
+#### Push
+```sh
+docker image push eozgit/life --all-tags
+```
+
+### Go
+
+#### Run
+```sh
+go run .
+```
+
+#### Wasm
+```sh
+wasmserve ./
+```

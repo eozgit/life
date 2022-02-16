@@ -14,7 +14,7 @@ var numberKeys = []ebiten.Key{ebiten.Key1, ebiten.Key2, ebiten.Key3, ebiten.Key4
 
 var lastSpaceshipCreatedAt = 0
 
-func (g *Game) checkInput() {
+func (g *Game) handleInput() {
 	if ebiten.IsKeyPressed(ebiten.KeyR) {
 		for _, key := range numberKeys {
 			if inpututil.IsKeyJustPressed(key) {
